@@ -6,7 +6,7 @@ class Animal(db.Model):
     """Represents an item in an inventory"""
 
     """Represents an item in an inventory"""
-
+    __tablename__ = 'animals'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
     species = db.Column(db.String, nullable=False)
