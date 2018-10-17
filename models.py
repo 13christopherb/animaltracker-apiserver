@@ -13,6 +13,7 @@ class Animal(db.Model):
     weight = db.Column(db.Integer)
     isGettingTubed = db.Column(db.Boolean)
     isGettingControlledMeds = db.Column(db.Boolean)
+    location = db.Column(db.String(3), nullable=False)
 
     @property
     def serialize(self):
@@ -28,5 +29,6 @@ class Animal(db.Model):
             'species':      self.species,
             'weight':     self.weight,
             'isGettingTubed': self.isGettingTubed,
-            'isGettingControlledMeds': self.isGettingControlledMeds
+            'isGettingControlledMeds': self.isGettingControlledMeds,
+            'location': self.location
         }

@@ -13,7 +13,7 @@ ma = Marshmallow(app)
 class AnimalSchema(ma.Schema):
     class Meta:
         # Fields to expose
-        fields = ('name', 'species', 'weight', 'isGettingTubed', 'isGettingControlledMeds', 'id')
+        fields = ('name', 'species', 'weight', 'isGettingTubed', 'isGettingControlledMeds', 'id', 'location')
 
 
 animal_schema = AnimalSchema()
@@ -46,7 +46,7 @@ def animals():
         obj = request.get_json()
         animal = Animal(name=obj['name'], species=obj['species'], weight=obj['weight'],
                         isGettingTubed=obj['isGettingTubed'],
-                        isGettingControlledMeds=obj['isGettingControlledMeds'])
+                        isGettingControlledMeds=obj['isGettingControlledMeds'], location=obj['location'])
 
         db.session.add(animal)
         db.session.commit()
