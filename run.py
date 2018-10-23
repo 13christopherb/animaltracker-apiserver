@@ -1,8 +1,4 @@
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS, cross_origin
-from flask_restful import Resource
-from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 from __init__ import app, db, api, jwt
 import models
@@ -15,6 +11,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 api.add_resource(resources.Animals, '/animals')
 api.add_resource(resources.AnimalDeletion, '/animal')
+api.add_resource(resources.TransportList, '/transports')
 api.add_resource(resources.UserRegistration, '/registration')
 api.add_resource(resources.UserLogin, '/login')
 api.add_resource(resources.UserLogoutAccess, '/logout/access')

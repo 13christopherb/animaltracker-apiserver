@@ -1,10 +1,12 @@
 from __init__ import db
 from passlib.hash import pbkdf2_sha256 as sha256
 
-class Animal(db.Model):
+
+class AnimalModel(db.Model):
     """Represents an item in an inventory"""
 
     """Represents an item in an inventory"""
+    __tablename__ = 'animal'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
     species = db.Column(db.String, nullable=False)
@@ -33,16 +35,34 @@ class Animal(db.Model):
         }
 
 
-class Transport(db.Model):
+class TransportModel(db.Model):
     __tablename__ = 'transport'
     id = db.Column(db.Integer, primary_key=True)
     departs = db.Column(db.String(3), nullable=False)
     arrives = db.Column(db.String(3), nullable=False)
     meetTime = db.Column(db.DateTime(), nullable=False)
-    animal_id = db.Column(db.Integer, db.ForeignKey('animal.id'),
-                            nullable=False)
-    animal = db.relationship('Animal',
+    animal_id = db.Column(db.Integer, db.ForeignKey('animal.id'))
+    animal = db.relationship('AnimalModel',
                                backref=db.backref('transport', lazy=True))
+
+    def add_animal(self, animal):
+        """
+        Adds a animal to the transport's list of categories
+
+        :param animal: The animal to be added
+        """
+
+        self.animal.append(animal)
+        return self
+
+    def remove_category(self, animal):
+        if len(self.animal) > 1:
+            self.animal.remove(animal)
+            return self
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
 
 
 class UserModel(db.Model):

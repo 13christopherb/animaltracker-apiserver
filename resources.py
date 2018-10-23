@@ -3,7 +3,7 @@ from flask_restful import Resource, reqparse
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required,
                                 jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from __init__ import animals_schema
-from models import Animal, UserModel, RevokedTokenModel, db
+from models import AnimalModel, UserModel, TransportModel, RevokedTokenModel, db
 
 parser = reqparse.RequestParser()
 parser.add_argument('username', help='This field cannot be blank', required=True)
@@ -12,17 +12,16 @@ parser.add_argument('password', help='This field cannot be blank', required=True
 
 class Animals(Resource):
     def get(self):
-        obj = Animal.query.all()
+        obj = AnimalModel.query.all()
         result = animals_schema.dump(obj)
-        test = {'animals': result.data}
-        print(result.data)
-        return jsonify(test)
+        animals = {'animals': result.data}
+        return jsonify(animals)
 
     def post(self):
         obj = request.get_json()
-        animal = Animal(name=obj['name'], species=obj['species'], weight=obj['weight'],
-                        isGettingTubed=obj['isGettingTubed'],
-                        isGettingControlledMeds=obj['isGettingControlledMeds'], location=obj['location'])
+        animal = AnimalModel(name=obj['name'], species=obj['species'], weight=obj['weight'],
+                             isGettingTubed=obj['isGettingTubed'],
+                             isGettingControlledMeds=obj['isGettingControlledMeds'], location=obj['location'])
 
         db.session.add(animal)
         db.session.commit()
@@ -31,12 +30,37 @@ class Animals(Resource):
 
 class AnimalDeletion(Resource):
     def delete(self, animal_id):
-        if request.method == 'DELETE':
-            obj = Animal.query.filter_by(id=animal_id).one_or_none()
-            db.session.delete(obj)
-            db.session.commit()
-        return '500'
+        obj = AnimalModel.query.filter_by(id=animal_id).one_or_none()
+        db.session.delete(obj)
+        db.session.commit()
+        return ''
 
+
+class Transport(Resource):
+    def get(self, transport_id):
+        obj = TransportModel.query.all()
+        return jsonify(obj)
+
+
+class TransportList(Resource):
+    def get(self):
+        obj = TransportModel.query.all()
+        return jsonify(obj)
+
+    def post(self):
+        data = parser.parse_args()
+        new_transport = TransportModel(
+            departs=data['departs'],
+            arrives=data['arrives'],
+            meetTime=data['meetTime']
+        )
+        try:
+            new_transport.save_to_db()
+            return {
+                'message': 'Transport {} was created'.format(data['meetTime'])
+            }
+        except:
+            return {'message': 'Something went wrong'}, 500
 
 class UserRegistration(Resource):
     def post(self):
@@ -65,7 +89,6 @@ class UserRegistration(Resource):
 class UserLogin(Resource):
     def post(self):
         data = parser.parse_args()
-        print('test')
         current_user = UserModel.find_by_username(data['username'])
         if not current_user:
             return {'message': 'User {} doesn\'t exist'.format(data['username'])}
@@ -75,8 +98,9 @@ class UserLogin(Resource):
             refresh_token = create_refresh_token(identity=data['username'])
             return {
                 'message': 'Logged in as {}'.format(current_user.username),
-                'access_token': access_token,
-                'refresh_token': refresh_token
+                'accessToken': access_token,
+                'refreshToken': refresh_token,
+                'username': data['username']
             }
         else:
             return {'message': 'Wrong credentials'}
