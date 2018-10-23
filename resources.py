@@ -2,12 +2,17 @@ from flask import Flask, jsonify, request
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required,
                                 jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
-from __init__ import animals_schema
+from __init__ import animals_schema, transports_schema
 from models import AnimalModel, UserModel, TransportModel, RevokedTokenModel, db
 
-parser = reqparse.RequestParser()
-parser.add_argument('username', help='This field cannot be blank', required=True)
-parser.add_argument('password', help='This field cannot be blank', required=True)
+login_parser = reqparse.RequestParser()
+login_parser.add_argument('username', help='This field cannot be blank', required=True)
+login_parser.add_argument('password', help='This field cannot be blank', required=True)
+
+transport_parser = reqparse.RequestParser()
+transport_parser.add_argument('departs', help='This field cannot be blank', required=True)
+transport_parser.add_argument('arrives', help='This field cannot be blank', required=True)
+transport_parser.add_argument('meetTime', help='This field cannot be blank', required=True)
 
 
 class Animals(Resource):
@@ -15,7 +20,7 @@ class Animals(Resource):
         obj = AnimalModel.query.all()
         result = animals_schema.dump(obj)
         animals = {'animals': result.data}
-        return jsonify(animals)
+        return animals
 
     def post(self):
         obj = request.get_json()
@@ -25,7 +30,7 @@ class Animals(Resource):
 
         db.session.add(animal)
         db.session.commit()
-        return jsonify(animal.serialize)
+        return {'animal': animal.serialize}
 
 
 class AnimalDeletion(Resource):
@@ -39,16 +44,20 @@ class AnimalDeletion(Resource):
 class Transport(Resource):
     def get(self, transport_id):
         obj = TransportModel.query.all()
-        return jsonify(obj)
+        result = transports_schema.dump(obj)
+        transports = {'transports': result.data}
+        return jsonify(transports)
 
 
 class TransportList(Resource):
     def get(self):
         obj = TransportModel.query.all()
-        return jsonify(obj)
+        result = transports_schema.dump(obj)
+        transports = {'transports': result.data}
+        return jsonify(transports)
 
     def post(self):
-        data = parser.parse_args()
+        data = transport_parser.parse_args()
         new_transport = TransportModel(
             departs=data['departs'],
             arrives=data['arrives'],
@@ -57,14 +66,14 @@ class TransportList(Resource):
         try:
             new_transport.save_to_db()
             return {
-                'message': 'Transport {} was created'.format(data['meetTime'])
+                'message': 'Transport {} was created'.format(data['meetTime']),
             }
         except:
             return {'message': 'Something went wrong'}, 500
 
 class UserRegistration(Resource):
     def post(self):
-        data = parser.parse_args()
+        data = login_parser.parse_args()
 
         if UserModel.find_by_username(data['username']):
             return {'message': 'User {} already exists'.format(data['username'])}
@@ -88,7 +97,7 @@ class UserRegistration(Resource):
 
 class UserLogin(Resource):
     def post(self):
-        data = parser.parse_args()
+        data = login_parser.parse_args()
         current_user = UserModel.find_by_username(data['username'])
         if not current_user:
             return {'message': 'User {} doesn\'t exist'.format(data['username'])}

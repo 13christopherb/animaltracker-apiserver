@@ -26,6 +26,14 @@ class AnimalSchema(ma.Schema):
         fields = ('name', 'species', 'weight', 'isGettingTubed', 'isGettingControlledMeds', 'id', 'location')
 
 
+class TransportSchema(ma.Schema):
+    class Meta:
+        # Fields to expose
+        fields = ('departs', 'arrives', 'meetTime', 'id')
+
+
 animal_schema = AnimalSchema()
 animals_schema = AnimalSchema(many=True)
+transport_schema = AnimalSchema()
+transports_schema = TransportSchema(many=True)
 
