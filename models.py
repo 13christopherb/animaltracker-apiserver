@@ -1,5 +1,6 @@
 from __init__ import db
 from passlib.hash import pbkdf2_sha256 as sha256
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 
 class AnimalModel(db.Model):

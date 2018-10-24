@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required,
                                 jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
-from __init__ import animals_schema, transports_schema
+from __init__ import animals_schema, transport_schema, transports_schema
 from models import AnimalModel, UserModel, TransportModel, RevokedTokenModel, db
 
 login_parser = reqparse.RequestParser()
@@ -16,46 +16,60 @@ transport_parser.add_argument('meetTime', help='This field cannot be blank', req
 
 
 class Animals(Resource):
+    @jwt_required
     def get(self):
         obj = AnimalModel.query.all()
         result = animals_schema.dump(obj)
         animals = {'animals': result.data}
         return animals
 
+    @jwt_required
     def post(self):
         obj = request.get_json()
-        animal = AnimalModel(name=obj['name'], species=obj['species'], weight=obj['weight'],
-                             isGettingTubed=obj['isGettingTubed'],
-                             isGettingControlledMeds=obj['isGettingControlledMeds'], location=obj['location'])
+        new_animal = AnimalModel(name=obj['name'], species=obj['species'], weight=obj['weight'],
+                                 isGettingTubed=obj['isGettingTubed'],
+                                 isGettingControlledMeds=obj['isGettingControlledMeds'], location=obj['location'])
 
-        db.session.add(animal)
+        db.session.add(new_animal)
         db.session.commit()
-        return {'animal': animal.serialize}
+
+        return {'animal': new_animal.serialize}
 
 
 class AnimalDeletion(Resource):
+    @jwt_required
     def delete(self, animal_id):
         obj = AnimalModel.query.filter_by(id=animal_id).one_or_none()
         db.session.delete(obj)
         db.session.commit()
-        return ''
+        return 200
 
 
 class Transport(Resource):
+    @jwt_required
     def get(self, transport_id):
         obj = TransportModel.query.all()
         result = transports_schema.dump(obj)
         transports = {'transports': result.data}
         return jsonify(transports)
 
+    @jwt_required
+    def delete(self, transport_id):
+        obj = TransportModel.query.filter_by(id=transport_id).one_or_none()
+        db.session.delete(obj)
+        db.session.commit()
+        return ''
+
 
 class TransportList(Resource):
+    @jwt_required
     def get(self):
         obj = TransportModel.query.all()
         result = transports_schema.dump(obj)
         transports = {'transports': result.data}
         return jsonify(transports)
 
+    @jwt_required
     def post(self):
         data = transport_parser.parse_args()
         new_transport = TransportModel(
@@ -65,11 +79,11 @@ class TransportList(Resource):
         )
         try:
             new_transport.save_to_db()
-            return {
-                'message': 'Transport {} was created'.format(data['meetTime']),
-            }
+            result = transport_schema.dump(new_transport)
+            return jsonify(result.data)
         except:
             return {'message': 'Something went wrong'}, 500
+
 
 class UserRegistration(Resource):
     def post(self):
@@ -100,7 +114,7 @@ class UserLogin(Resource):
         data = login_parser.parse_args()
         current_user = UserModel.find_by_username(data['username'])
         if not current_user:
-            return {'message': 'User {} doesn\'t exist'.format(data['username'])}
+            return {'message': 'User {} doesn\'t exist'.format(data['username'])}, 401
 
         if UserModel.verify_hash(data['password'], current_user.password):
             access_token = create_access_token(identity=data['username'])
@@ -112,7 +126,7 @@ class UserLogin(Resource):
                 'username': data['username']
             }
         else:
-            return {'message': 'Wrong credentials'}
+            return {'message': 'Wrong credentials'}, 401
 
 
 class UserLogoutAccess(Resource):
@@ -132,11 +146,12 @@ class UserLogoutRefresh(Resource):
     def post(self):
         jti = get_raw_jwt()['jti']
         try:
-            revoked_token = RevokedTokenModel(jti = jti)
+            revoked_token = RevokedTokenModel(jti=jti)
             revoked_token.add()
             return {'message': 'Refresh token has been revoked'}
         except:
             return {'message': 'Something went wrong'}, 500
+
 
 class TokenRefresh(Resource):
     @jwt_refresh_token_required
