@@ -4,6 +4,7 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
                                 jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from __init__ import animals_schema, transport_schema, transports_schema
 from models import AnimalModel, UserModel, TransportModel, RevokedTokenModel, db
+import datetime
 
 login_parser = reqparse.RequestParser()
 login_parser.add_argument('username', help='This field cannot be blank', required=True)
@@ -18,6 +19,7 @@ transport_parser.add_argument('meetTime', help='This field cannot be blank', req
 class Animals(Resource):
     @jwt_required
     def get(self):
+        print(get_jwt_identity())
         obj = AnimalModel.query.all()
         result = animals_schema.dump(obj)
         animals = {'animals': result.data}
@@ -114,7 +116,7 @@ class UserLogin(Resource):
         data = login_parser.parse_args()
         current_user = UserModel.find_by_username(data['username'])
         if not current_user:
-            return {'message': 'User {} doesn\'t exist'.format(data['username'])}, 401
+            return {'message': 'User {} doesn\'t exist'.format(data['username'])},401
 
         if UserModel.verify_hash(data['password'], current_user.password):
             access_token = create_access_token(identity=data['username'])
@@ -126,7 +128,7 @@ class UserLogin(Resource):
                 'username': data['username']
             }
         else:
-            return {'message': 'Wrong credentials'}, 401
+            return {'message': 'Wrong credentials'},401
 
 
 class UserLogoutAccess(Resource):
@@ -158,7 +160,7 @@ class TokenRefresh(Resource):
     def post(self):
         current_user = get_jwt_identity()
         access_token = create_access_token(identity=current_user)
-        return {'access_token': access_token}
+        return {'accessToken': access_token}
 
 
 class AllUsers(Resource):

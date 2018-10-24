@@ -34,6 +34,6 @@ class TransportSchema(ma.Schema):
 
 animal_schema = AnimalSchema()
 animals_schema = AnimalSchema(many=True)
-transport_schema = AnimalSchema()
+transport_schema = TransportSchema()
 transports_schema = TransportSchema(many=True)
 
