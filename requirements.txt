@@ -4,6 +4,7 @@ Click==7.0
 Flask==1.0.2
 Flask-Cors==3.0.6
 flask-heroku==0.1.9
+Flask-JWT-Extended==3.13.1
 flask-marshmallow==0.9.0
 Flask-Migrate==2.2.1
 Flask-RESTful==0.3.6
@@ -15,7 +16,9 @@ Jinja2==2.10
 Mako==1.0.7
 MarkupSafe==1.0
 marshmallow==2.16.0
+passlib==1.7.1
 psycopg2==2.7.5
+PyJWT==1.6.4
 python-dateutil==2.7.3
 python-editor==1.0.3
 pytz==2018.5
