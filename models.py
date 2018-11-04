@@ -1,39 +1,42 @@
 from __init__ import db
 from passlib.hash import pbkdf2_sha256 as sha256
-from sqlalchemy.ext.declarative import DeclarativeMeta
 
 
 class AnimalModel(db.Model):
-    """Represents an item in an inventory"""
-
-    """Represents an item in an inventory"""
     __tablename__ = 'animal'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False)
     species = db.Column(db.String, nullable=False)
     weight = db.Column(db.Integer)
-    isGettingTubed = db.Column(db.Boolean)
-    isGettingControlledMeds = db.Column(db.Boolean)
-    location = db.Column(db.String(3), nullable=False)
+    is_getting_tubed = db.Column(db.Boolean)
+    is_getting_controlled_meds = db.Column(db.Boolean)
+    timestamp = db.Column(db.DateTime(timezone=True))
+
+    location_name = db.Column(db.String, db.ForeignKey('location.location_name'))
+    location = db.relationship('LocationModel', backref=db.backref('animals'), lazy=True)
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
 
 
-    @property
-    def serialize(self):
-        """
-        Serializes the Item to a JSON object
+class LocationModel(db.Model):
+    __tablename__ = 'location'
+    location_name = db.Column(db.String(3), primary_key=True)
 
-        :return: JSON representation of the item
-        """
+    def add_animal(self, animal):
+        print(self.animals)
+        self.animals.append(animal)
+        return self
 
-        return {
-            'id': self.id,
-            'name': self.name,
-            'species': self.species,
-            'weight': self.weight,
-            'isGettingTubed': self.isGettingTubed,
-            'isGettingControlledMeds': self.isGettingControlledMeds,
-            'location': self.location
-        }
+    def remove_animal(self, animal):
+        if len(self.animal) > 1:
+            self.animal.remove(animal)
+            return self
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
 
 
 class TransportModel(db.Model):
@@ -41,22 +44,16 @@ class TransportModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     departs = db.Column(db.String(3), nullable=False)
     arrives = db.Column(db.String(3), nullable=False)
-    meetTime = db.Column(db.DateTime(), nullable=False)
+    meet_time = db.Column(db.DateTime(), nullable=False)
     animal_id = db.Column(db.Integer, db.ForeignKey('animal.id'))
     animal = db.relationship('AnimalModel',
                                backref=db.backref('transport', lazy=True))
 
     def add_animal(self, animal):
-        """
-        Adds a animal to the transport's list of categories
-
-        :param animal: The animal to be added
-        """
-
         self.animal.append(animal)
         return self
 
-    def remove_category(self, animal):
+    def remove_animal(self, animal):
         if len(self.animal) > 1:
             self.animal.remove(animal)
             return self

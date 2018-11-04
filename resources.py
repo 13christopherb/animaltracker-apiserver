@@ -2,8 +2,9 @@ from flask import Flask, jsonify, request
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required,
                                 jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
-from __init__ import animals_schema, transport_schema, transports_schema
-from models import AnimalModel, UserModel, TransportModel, RevokedTokenModel, db
+from schemas import animal_schema, animals_schema, location_schema, locations_schema, \
+    transport_schema, transports_schema
+from models import AnimalModel, LocationModel, UserModel, TransportModel, RevokedTokenModel, db
 import datetime
 
 login_parser = reqparse.RequestParser()
@@ -19,7 +20,6 @@ transport_parser.add_argument('meetTime', help='This field cannot be blank', req
 class Animals(Resource):
     @jwt_required
     def get(self):
-        print(get_jwt_identity())
         obj = AnimalModel.query.all()
         result = animals_schema.dump(obj)
         animals = {'animals': result.data}
@@ -27,15 +27,18 @@ class Animals(Resource):
 
     @jwt_required
     def post(self):
-        obj = request.get_json()
-        new_animal = AnimalModel(name=obj['name'], species=obj['species'], weight=obj['weight'],
-                                 isGettingTubed=obj['isGettingTubed'],
-                                 isGettingControlledMeds=obj['isGettingControlledMeds'], location=obj['location'])
-
-        db.session.add(new_animal)
-        db.session.commit()
-
-        return {'animal': new_animal.serialize}
+        data = request.get_json()
+        new_animal = animal_schema.load(data).data
+        location = LocationModel.query.filter_by(location_name=data['location']).one_or_none()
+        try:
+            location.add_animal(new_animal)
+            location.save_to_db()
+            db.session.add(location)
+            db.session.commit()
+            result = animal_schema.dump(new_animal)
+            return jsonify({'animal': result.data})
+        except:
+            return {'message': 'Something went wrong'}, 500
 
 
 class AnimalDeletion(Resource):
@@ -45,6 +48,23 @@ class AnimalDeletion(Resource):
         db.session.delete(obj)
         db.session.commit()
         return 200
+
+
+class Location(Resource):
+    @jwt_required
+    def get(self, location_id):
+        obj = LocationModel.query.filter_by(id=location_id).one_or_none()
+        result = locations_schema.dump(obj)
+        location = {'location': result.data}
+        return location
+
+
+class Locations(Resource):
+    @jwt_required
+    def get(self):
+        obj = LocationModel.query.all()
+        result = locations_schema.dump(obj)
+        return {'locations': result.data}
 
 
 class Transport(Resource):
@@ -73,12 +93,8 @@ class TransportList(Resource):
 
     @jwt_required
     def post(self):
-        data = transport_parser.parse_args()
-        new_transport = TransportModel(
-            departs=data['departs'],
-            arrives=data['arrives'],
-            meetTime=data['meetTime']
-        )
+        data = request.get_json()
+        new_transport = transport_schema.load(data).data
         try:
             new_transport.save_to_db()
             result = transport_schema.dump(new_transport)

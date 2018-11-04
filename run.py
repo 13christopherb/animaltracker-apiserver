@@ -11,6 +11,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 api.add_resource(resources.Animals, '/animals')
 api.add_resource(resources.AnimalDeletion, '/animal/<string:animal_id>')
+api.add_resource(resources.Locations, '/locations')
 api.add_resource(resources.TransportList, '/transports')
 api.add_resource(resources.Transport, '/transport/<string:transport_id>')
 api.add_resource(resources.UserRegistration, '/registration')

@@ -4,12 +4,13 @@ from flask_heroku import Heroku
 from flask_restful import Api
 from flask_marshmallow import Marshmallow
 from flask_jwt_extended import JWTManager
+from marshmallow import fields, post_load
 
 """Initialization and configuration"""
 app = Flask(__name__)
 app.config['SESSION_TYPE'] = 'filesystem'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/animals'
-app.config['SQLALCHEMY_DATABASE_URL'] = 'postgresql://postgresql-graceful-65901'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/animals'
+# app.config['SQLALCHEMY_DATABASE_URL'] = 'postgresql://postgresql-graceful-65901'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
 app.config['JWT_BLACKLIST_ENABLED'] = True
@@ -21,20 +22,5 @@ jwt = JWTManager(app)
 ma = Marshmallow(app)
 
 
-class AnimalSchema(ma.Schema):
-    class Meta:
-        # Fields to expose
-        fields = ('name', 'species', 'weight', 'isGettingTubed', 'isGettingControlledMeds', 'id', 'location')
 
-
-class TransportSchema(ma.Schema):
-    class Meta:
-        # Fields to expose
-        fields = ('departs', 'arrives', 'meetTime', 'id')
-
-
-animal_schema = AnimalSchema()
-animals_schema = AnimalSchema(many=True)
-transport_schema = TransportSchema()
-transports_schema = TransportSchema(many=True)
 
