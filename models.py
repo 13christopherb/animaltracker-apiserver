@@ -1,3 +1,4 @@
+
 from __init__ import db
 from passlib.hash import pbkdf2_sha256 as sha256
 
@@ -25,7 +26,6 @@ class LocationModel(db.Model):
     location_name = db.Column(db.String(3), primary_key=True)
 
     def add_animal(self, animal):
-        print(self.animals)
         self.animals.append(animal)
         return self
 
@@ -44,7 +44,7 @@ class TransportModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     departs = db.Column(db.String(3), nullable=False)
     arrives = db.Column(db.String(3), nullable=False)
-    meet_time = db.Column(db.DateTime(), nullable=False)
+    meet_time = db.Column(db.DateTime(timezone=True), nullable=False)
     animal_id = db.Column(db.Integer, db.ForeignKey('animal.id'))
     animal = db.relationship('AnimalModel',
                                backref=db.backref('transport', lazy=True))

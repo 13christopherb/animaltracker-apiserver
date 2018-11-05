@@ -33,9 +33,8 @@ class Animals(Resource):
         try:
             location.add_animal(new_animal)
             location.save_to_db()
-            db.session.add(location)
-            db.session.commit()
             result = animal_schema.dump(new_animal)
+            print('test')
             return jsonify({'animal': result.data})
         except:
             return {'message': 'Something went wrong'}, 500
@@ -88,6 +87,7 @@ class TransportList(Resource):
     def get(self):
         obj = TransportModel.query.all()
         result = transports_schema.dump(obj)
+        print(result)
         transports = {'transports': result.data}
         return jsonify(transports)
 

@@ -16,7 +16,6 @@ class AnimalSchema(ma.Schema):
 
     @post_load
     def make_animal(self, data):
-        print(data)
         return AnimalModel(**data)
 
 
@@ -31,7 +30,7 @@ class LocationSchema(ma.Schema):
 
 
 class TransportSchema(ma.Schema):
-    meetTime = fields.DateTime('%Y-%m-%dT%H:%M:%S-07:00', attribute='meet_time')
+    meetTime = fields.DateTime(attribute='meet_time')
     departs = fields.String()
     arrives = fields.String()
     id = fields.Integer(dump_only=True)
