@@ -45,6 +45,7 @@ class TransportModel(db.Model):
     departs = db.Column(db.String(3), nullable=False)
     arrives = db.Column(db.String(3), nullable=False)
     meet_time = db.Column(db.DateTime(timezone=True), nullable=False)
+    meet_place = db.Column(db.String(30))
     animal_id = db.Column(db.Integer, db.ForeignKey('animal.id'))
     animal = db.relationship('AnimalModel',
                                backref=db.backref('transport', lazy=True))
@@ -69,6 +70,7 @@ class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    location = db.Column(db.String(3), nullable=False)
 
     def save_to_db(self):
         db.session.add(self)

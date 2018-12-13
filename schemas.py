@@ -31,6 +31,7 @@ class LocationSchema(ma.Schema):
 
 class TransportSchema(ma.Schema):
     meetTime = fields.DateTime(attribute='meet_time')
+    meetPlace = fields.String(attribute='meet_place')
     departs = fields.String()
     arrives = fields.String()
     id = fields.Integer(dump_only=True)

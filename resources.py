@@ -34,13 +34,27 @@ class Animals(Resource):
             location.add_animal(new_animal)
             location.save_to_db()
             result = animal_schema.dump(new_animal)
-            print('test')
             return jsonify({'animal': result.data})
         except:
             return {'message': 'Something went wrong'}, 500
 
 
-class AnimalDeletion(Resource):
+class Animal(Resource):
+    @jwt_required
+    def post(self, animal_id):
+        data = request.get_json()
+        obj = AnimalModel.query.filter_by(id=animal_id).one_or_none()
+        old_animal = animal_schema.dump(obj)
+        obj.location_name = data['location']
+        result = animal_schema.dump(obj)
+        try:
+            obj.save_to_db()
+            return jsonify({
+                'old': old_animal.data,
+                'new': result.data})
+        except:
+            return {'message': 'Something went wrong'}, 500
+
     @jwt_required
     def delete(self, animal_id):
         obj = AnimalModel.query.filter_by(id=animal_id).one_or_none()
@@ -105,14 +119,15 @@ class TransportList(Resource):
 
 class UserRegistration(Resource):
     def post(self):
-        data = login_parser.parse_args()
+        data = request.get_json()
 
         if UserModel.find_by_username(data['username']):
             return {'message': 'User {} already exists'.format(data['username'])}
 
         new_user = UserModel(
             username=data['username'],
-            password=UserModel.generate_hash(data['password'])
+            password=UserModel.generate_hash(data['password']),
+            location=data['location']
         )
         try:
             new_user.save_to_db()
