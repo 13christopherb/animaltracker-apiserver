@@ -21,8 +21,6 @@ api = Api(app)
 jwt = JWTManager(app)
 ma = Marshmallow(app)
 
-jwt._set_error_handler_callbacks(api)
-
 
 
 
