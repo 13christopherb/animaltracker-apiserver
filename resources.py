@@ -5,7 +5,7 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 from schemas import animal_schema, animals_schema, location_schema, locations_schema, \
     transport_schema, transports_schema
 from models import AnimalModel, LocationModel, UserModel, TransportModel, RevokedTokenModel, db
-import datetime
+from __init__ import jwt
 
 login_parser = reqparse.RequestParser()
 login_parser.add_argument('username', help='This field cannot be blank', required=True)
@@ -15,6 +15,15 @@ transport_parser = reqparse.RequestParser()
 transport_parser.add_argument('departs', help='This field cannot be blank', required=True)
 transport_parser.add_argument('arrives', help='This field cannot be blank', required=True)
 transport_parser.add_argument('meetTime', help='This field cannot be blank', required=True)
+
+
+@jwt.expired_token_loader
+def my_expired_token_callback():
+    return jsonify({
+        'status': 401,
+        'sub_status': 42,
+        'msg': 'The token has expired'
+    }), 401
 
 
 class Animals(Resource):
