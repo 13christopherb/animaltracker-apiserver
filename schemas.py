@@ -21,7 +21,6 @@ class AnimalSchema(ma.Schema):
 
 class LocationSchema(ma.Schema):
     locationName = fields.String(attribute='location_name')
-    id = fields.Integer(dump_only=True)
     animals = fields.Nested(AnimalSchema, many=True)
 
     @post_load

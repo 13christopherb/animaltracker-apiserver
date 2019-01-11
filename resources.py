@@ -38,7 +38,7 @@ class Animals(Resource):
     def post(self):
         data = request.get_json()
         new_animal = animal_schema.load(data).data
-        location = LocationModel.query.filter_by(location_name=data['location']).one_or_none()
+        location = LocationModel.query.filter_by(name=data['location']).one_or_none()
         try:
             location.add_animal(new_animal)
             location.save_to_db()
@@ -54,13 +54,14 @@ class Animal(Resource):
         data = request.get_json()
         obj = AnimalModel.query.filter_by(id=animal_id).one_or_none()
         old_animal = animal_schema.dump(obj)
-        obj.location_name = data['location']
+        obj.name = data['location']
         result = animal_schema.dump(obj)
         try:
             obj.save_to_db()
             return jsonify({
                 'old': old_animal.data,
-                'new': result.data})
+                'new': result.data
+            })
         except:
             return {'message': 'Something went wrong'}, 500
 
@@ -74,11 +75,27 @@ class Animal(Resource):
 
 class Location(Resource):
     @jwt_required
-    def get(self, location_id):
-        obj = LocationModel.query.filter_by(id=location_id).one_or_none()
+    def get(self, name):
+        obj = LocationModel.query.filter_by(name=name).one_or_none()
         result = locations_schema.dump(obj)
         location = {'location': result.data}
         return location
+
+    @jwt_required
+    def post(self, name):
+        data = request.get_json()
+        obj = LocationModel.query.filter_by(name=name).one_or_none()
+        old_location = location_schema.dump(obj)
+        obj.last_updated = data['lastUpdated']
+        result = animal_schema.dump(obj)
+        try:
+            obj.save_to_db()
+            return jsonify({
+                'old': old_location.data,
+                'new': result.data
+            })
+        except:
+            return {'message': 'Something went wrong'}, 500
 
 
 class Locations(Resource):
