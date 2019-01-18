@@ -43,7 +43,7 @@ class Animals(Resource):
             location.add_animal(new_animal)
             location.save_to_db()
             result = animal_schema.dump(new_animal)
-            return jsonify({'animal': result.data})
+            return jsonify({'animal': result.data, 'lastUpdated': location.last_updated})
         except:
             return {'message': 'Something went wrong'}, 500
 

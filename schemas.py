@@ -10,7 +10,7 @@ class AnimalSchema(ma.Schema):
     weight = fields.String()
     isGettingTubed = fields.Boolean(attribute='is_getting_tubed')
     isGettingControlledMeds = fields.Boolean(attribute='is_getting_controlled_meds')
-    location = fields.String(attribute='location_name')
+    location = fields.String(attribute='location')
     id = fields.Integer(dump_only=True)
     timestamp = fields.DateTime()
 
@@ -20,8 +20,9 @@ class AnimalSchema(ma.Schema):
 
 
 class LocationSchema(ma.Schema):
-    locationName = fields.String(attribute='location_name')
+    name = fields.String(attribute='name')
     animals = fields.Nested(AnimalSchema, many=True)
+    lastUpdated = fields.DateTime(attribute='last_updated')
 
     @post_load
     def make_location(self, data):

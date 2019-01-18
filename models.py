@@ -1,7 +1,7 @@
-
 from __init__ import db
 from passlib.hash import pbkdf2_sha256 as sha256
-
+from flask_sqlalchemy import event
+import datetime
 
 class AnimalModel(db.Model):
     __tablename__ = 'animal'
@@ -13,8 +13,7 @@ class AnimalModel(db.Model):
     is_getting_controlled_meds = db.Column(db.Boolean)
     timestamp = db.Column(db.DateTime(timezone=True))
 
-    location_name = db.Column(db.String, db.ForeignKey('location.location_name'))
-    location = db.relationship('LocationModel', backref=db.backref('animals'), lazy=True)
+    location = db.Column(db.String, db.ForeignKey('location.name'))
 
     def save_to_db(self):
         db.session.add(self)
@@ -23,7 +22,10 @@ class AnimalModel(db.Model):
 
 class LocationModel(db.Model):
     __tablename__ = 'location'
-    location_name = db.Column(db.String(3), primary_key=True)
+    name = db.Column(db.String(3), primary_key=True, unique=True)
+    last_updated = db.Column(db.DateTime(timezone=True))
+
+    animals = db.relationship('AnimalModel')
 
     def add_animal(self, animal):
         self.animals.append(animal)
@@ -68,7 +70,7 @@ class UserModel(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120), unique=True, nullable=False)
+    username = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(120), nullable=False)
     location = db.Column(db.String(3), nullable=False)
 
@@ -102,3 +104,11 @@ class RevokedTokenModel(db.Model):
     def is_jti_blacklisted(cls, jti):
         query = cls.query.filter_by(jti=jti).first()
         return bool(query)
+
+
+@event.listens_for(LocationModel.animals, 'append')
+@event.listens_for(LocationModel.animals, 'remove')
+def receive_append_or_remove(target, value, initiator):
+    target.last_updated = datetime.datetime.now()
+    target.save_to_db()
+    print(target.last_updated)
